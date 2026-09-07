@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgriBot - AI Smart Farming Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">IBM watsonx.ai + Granite</p>
+          <h1>AgriBot</h1>
+        </div>
+        <div class="status-pill">AI Smart Farming Assistant</div>
+      </header>
+
+      <main class="dashboard">
+        <section class="panel form-panel">
+          <h2>Farmer Query</h2>
+          <form id="advice-form">
+            <div class="grid two-col">
+              <label>
+                Crop
+                <input type="text" id="crop" name="crop" value="Wheat" />
+              </label>
+              <label>
+                Location
+                <input type="text" id="location" name="location" value="Punjab" />
+              </label>
+              <label>
+                Soil Type
+                <input type="text" id="soil" name="soil" value="Loamy" />
+              </label>
+              <label>
+                Season
+                <select id="season" name="season">
+                  <option value="Rabi">Rabi</option>
+                  <option value="Kharif">Kharif</option>
+                  <option value="Summer">Summer</option>
+                  <option value="Zaid">Zaid</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              Advisory Agent
+              <select id="agent" name="agent">
+                <option value="crop">Crop Advisory Agent</option>
+                <option value="mandi">Mandi Price Agent</option>
+                <option value="pest">Pest & Protection Agent</option>
+              </select>
+            </label>
+
+            <label>
+              Ask about your field condition
+              <textarea id="query" name="query" rows="5" placeholder="Example: When should I irrigate wheat in Punjab to reduce disease pressure and improve yield?">When should I irrigate wheat in Punjab to reduce disease pressure and improve yield?</textarea>
+            </label>
+
+            <button type="submit" class="primary-btn">Get Smart Advice</button>
+          </form>
+        </section>
+
+        <section class="panel result-panel">
+          <div class="result-header">
+            <h2>AI Guidance</h2>
+            <span id="agent-badge" class="agent-badge">Crop Advisory Agent</span>
+          </div>
+
+          <div id="loading" class="loading hidden">Thinking with IBM Granite...</div>
+
+          <div id="response-box" class="response-box">
+            <p class="placeholder-text">
+              Your agriculture advice will appear here after the analysis starts.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const form = document.getElementById('advice-form');
+      const responseBox = document.getElementById('response-box');
+      const loading = document.getElementById('loading');
+      const agentBadge = document.getElementById('agent-badge');
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const payload = {
+          crop: document.getElementById('crop').value,
+          location: document.getElementById('location').value,
+          soil: document.getElementById('soil').value,
+          season: document.getElementById('season').value,
+          agent: document.getElementById('agent').value,
+          query: document.getElementById('query').value,
+        };
+
+        loading.classList.remove('hidden');
+        responseBox.innerHTML = '<p class="placeholder-text">Generating agronomic guidance...</p>';
+
+        try {
+          const response = await fetch('/api/advice', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+          loading.classList.add('hidden');
+          agentBadge.textContent = data.agent || 'Smart Farming Agent';
+
+          responseBox.innerHTML = `<div class="response-card"><p>${(data.response || 'No guidance available.').replace(/\n/g, '<br><br>')}</p></div>`;
+        } catch (error) {
+          loading.classList.add('hidden');
+          responseBox.innerHTML = '<p class="error-text">Unable to fetch advice. Please ensure the Watsonx environment variables are configured.</p>';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+Flask
+ibm-watsonx-ai
+python-dotenv
+requests
+faiss-cpu
+sentence-transformers
